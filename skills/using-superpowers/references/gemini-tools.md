@@ -10,7 +10,7 @@ Skills use Claude Code tool names. When you encounter these in a skill, use your
 | `Bash` (run commands) | `run_shell_command` |
 | `Grep` (search file content) | `grep_search` |
 | `Glob` (search files by name) | `glob` |
-| `TodoWrite` (task tracking) | `write_todos` |
+| `br` CLI (beads issue tracking) | `br create`, `br update`, `br close` via `run_shell_command` |
 | `Skill` tool (invoke a skill) | `activate_skill` |
 | `WebSearch` | `google_web_search` |
 | `WebFetch` | `web_fetch` |

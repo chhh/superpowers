@@ -55,15 +55,19 @@ digraph process {
         "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [shape=box];
         "Code quality reviewer subagent approves?" [shape=diamond];
         "Implementer subagent fixes quality issues" [shape=box];
-        "Mark task complete in TodoWrite" [shape=box];
+        "Close task in beads (br close)" [shape=box];
     }
 
-    "Read plan, extract all tasks with full text, note context, create TodoWrite" [shape=box];
-    "More tasks remain?" [shape=diamond];
+    "Read plan, create epic + child tasks (br create --type=epic, --parent)" [shape=box];
+    "Add inter-task dependencies (br dep add)" [shape=box];
+    "Pick next unblocked task (br ready)" [shape=diamond];
     "Dispatch final code reviewer subagent for entire implementation" [shape=box];
+    "Close epic (br epic close-eligible)" [shape=box];
     "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
-    "Read plan, extract all tasks with full text, note context, create TodoWrite" -> "Dispatch implementer subagent (./implementer-prompt.md)";
+    "Read plan, create epic + child tasks (br create --type=epic, --parent)" -> "Add inter-task dependencies (br dep add)";
+    "Add inter-task dependencies (br dep add)" -> "Pick next unblocked task (br ready)";
+    "Pick next unblocked task (br ready)" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="task available"];
     "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer subagent asks questions?";
     "Implementer subagent asks questions?" -> "Answer questions, provide context" [label="yes"];
     "Answer questions, provide context" -> "Dispatch implementer subagent (./implementer-prompt.md)";
@@ -76,11 +80,11 @@ digraph process {
     "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" -> "Code quality reviewer subagent approves?";
     "Code quality reviewer subagent approves?" -> "Implementer subagent fixes quality issues" [label="no"];
     "Implementer subagent fixes quality issues" -> "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [label="re-review"];
-    "Code quality reviewer subagent approves?" -> "Mark task complete in TodoWrite" [label="yes"];
-    "Mark task complete in TodoWrite" -> "More tasks remain?";
-    "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
-    "More tasks remain?" -> "Dispatch final code reviewer subagent for entire implementation" [label="no"];
-    "Dispatch final code reviewer subagent for entire implementation" -> "Use superpowers:finishing-a-development-branch";
+    "Code quality reviewer subagent approves?" -> "Close task in beads (br close)" [label="yes"];
+    "Close task in beads (br close)" -> "Pick next unblocked task (br ready)";
+    "Pick next unblocked task (br ready)" -> "Dispatch final code reviewer subagent for entire implementation" [label="none remaining"];
+    "Dispatch final code reviewer subagent for entire implementation" -> "Close epic (br epic close-eligible)";
+    "Close epic (br epic close-eligible)" -> "Use superpowers:finishing-a-development-branch";
 }
 ```
 
@@ -130,7 +134,19 @@ You: I'm using Subagent-Driven Development to execute this plan.
 
 [Read plan file once: docs/superpowers/plans/feature-plan.md]
 [Extract all 5 tasks with full text and context]
-[Create TodoWrite with all tasks]
+
+[Create epic and child tasks:]
+  br create --title="Feature Plan" --type=epic --priority=2    → epic-id
+  br create --title="Task 1: Hook installation" --type=task --parent <epic-id>  → task-1-id
+  br create --title="Task 2: Recovery modes" --type=task --parent <epic-id>     → task-2-id
+  br create --title="Task 3: CLI interface" --type=task --parent <epic-id>      → task-3-id
+  ...
+[Add inter-task dependencies:]
+  br dep add <task-2-id> <task-1-id>   # Task 2 depends on Task 1
+  br dep add <task-3-id> <task-2-id>   # Task 3 depends on Task 2
+
+[br ready → Task 1 is unblocked]
+[br update <task-1-id> --status=in_progress]
 
 Task 1: Hook installation script
 
@@ -154,7 +170,9 @@ Spec reviewer: ✅ Spec compliant - all requirements met, nothing extra
 [Get git SHAs, dispatch code quality reviewer]
 Code reviewer: Strengths: Good test coverage, clean. Issues: None. Approved.
 
-[Mark Task 1 complete]
+[br close <task-1-id> --reason="Completed"]
+[br ready → Task 2 is now unblocked]
+[br update <task-2-id> --status=in_progress]
 
 Task 2: Recovery modes
 
@@ -188,13 +206,17 @@ Implementer: Extracted PROGRESS_INTERVAL constant
 [Code reviewer reviews again]
 Code reviewer: ✅ Approved
 
-[Mark Task 2 complete]
+[br close <task-2-id> --reason="Completed"]
+[br ready → Task 3 is now unblocked]
 
 ...
 
 [After all tasks]
+[br epic status → all children closed]
 [Dispatch final code-reviewer]
 Final reviewer: All requirements met, ready to merge
+
+[br epic close-eligible → epic auto-closed]
 
 Done!
 ```

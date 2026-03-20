@@ -49,7 +49,7 @@ This structure informs the task decomposition. Each task should produce self-con
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Track via beads: create an epic (`br create --type=epic`), then create each task as a child (`br create --parent <epic-id>`). Add inter-task dependencies with `br dep add`. Use `br ready` for next unblocked task, `br epic status` for overall progress.
 
 **Goal:** [One sentence describing what this builds]
 

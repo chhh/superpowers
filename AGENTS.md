@@ -25,6 +25,19 @@ br update <id> --status=in_progress
 br close <id> --reason="Completed"
 br close <id1> <id2>  # Close multiple issues at once
 
+# Epics and parent-child relationships
+br create --title="Epic Name" --type=epic --priority=2
+br create --title="Subtask" --type=task --parent <epic-id>
+br epic status               # Progress of all epics
+br epic close-eligible        # Auto-close epics where all children are done
+
+# Dependencies and dependency trees
+br dep add <issue> <depends-on>              # issue is blocked by depends-on
+br dep add <issue> <other> --type related    # soft link (no blocking)
+br dep tree <issue>                          # visualize dependency tree (downward)
+br dep tree <issue> --direction both         # both directions
+br dep cycles                                # detect circular dependencies
+
 # Sync with git
 br sync --flush-only  # Export DB to JSONL
 br sync --status      # Check sync status
@@ -40,10 +53,10 @@ br sync --status      # Check sync status
 
 ### Key Concepts
 
-- **Dependencies**: Issues can block other issues. `br ready` shows only open, unblocked work.
+- **Epics**: Group related tasks under an epic. Create with `--type=epic`, add children with `--parent <epic-id>`. Track progress with `br epic status`.
+- **Dependencies**: Issues can block other issues. `br dep add <issue> <depends-on>` creates a blocking relationship. `br ready` shows only open, unblocked work.
 - **Priority**: P0=critical, P1=high, P2=medium, P3=low, P4=backlog (use numbers 0-4, not words)
 - **Types**: task, bug, feature, epic, chore, docs, question
-- **Blocking**: `br dep add <issue> <depends-on>` to add dependencies
 
 ### Session Protocol
 
